@@ -1,0 +1,16 @@
+{
+  "id": "continuous",
+  "name": "${name}",
+  "version": "${version}",
+  "description": "Continuous is a plugin designed to keep players continuously connected to your server, helping maintain consistent concurrent player counts.",
+  "authors": [
+    "${author}"
+  ],
+  "main": "${main}",
+  "dependencies": [
+    {
+      "id": "limboapi",
+      "optional": false
+    }
+  ]
+}
