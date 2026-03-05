@@ -1,13 +1,6 @@
 package kr.rtustudio.configurate;
 
 import io.leangen.geantyref.GenericTypeReflector;
-
-import java.io.BufferedReader;
-import java.lang.reflect.Type;
-import java.nio.file.AccessDeniedException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongepowered.configurate.CommentedConfigurationNode;
@@ -22,6 +15,12 @@ import org.spongepowered.configurate.util.MapFactories;
 import org.spongepowered.configurate.yaml.NodeStyle;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
+import java.io.BufferedReader;
+import java.lang.reflect.Type;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 /**
  * Lightweight configuration loader for ConfigurationPart-based configs.
  *
@@ -30,12 +29,11 @@ import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 public class Configuration<T extends ConfigurationPart> {
 
     private static final Logger log = LoggerFactory.getLogger("Configuration");
-
-    protected YamlConfigurationLoader loader;
     protected final Class<T> type;
     protected final Path path;
     protected final BufferedReader defaultConfig;
     protected final String header;
+    protected YamlConfigurationLoader loader;
 
     public Configuration(Class<T> type, Path path) {
         this(type, path, null, null);

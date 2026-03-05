@@ -1,15 +1,15 @@
 package kr.rtustudio.continuous.handler;
 
-import kr.rtustudio.continuous.Continuous;
-import kr.rtustudio.continuous.configuration.QueueConfig;
-import net.elytrium.limboapi.api.Limbo;
-import net.elytrium.limboapi.api.player.LimboPlayer;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.server.PingOptions;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
 import com.velocitypowered.api.proxy.server.ServerPing;
+import kr.rtustudio.continuous.Continuous;
+import kr.rtustudio.continuous.configuration.QueueConfig;
+import net.elytrium.limboapi.api.Limbo;
+import net.elytrium.limboapi.api.player.LimboPlayer;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.title.Title;
 
 import java.text.MessageFormat;
@@ -36,20 +36,21 @@ public class QueueHandler extends AbstractHandler {
         Player proxyPlayer = player.getProxyPlayer();
         boolean isPriority = proxyPlayer.hasPermission("continuous.priority");
         plugin.getQueueManager().addToNewQueue(proxyPlayer, targetServer, isPriority);
-        
-        player.setGameMode(config.world.gamemode());
+
         scheduleNextTick(config.server.check());
     }
 
     @Override
     protected void tick() {
-        if (!active || limboPlayer == null) return;
-        
+        if (!active || limboPlayer == null)
+            return;
+
         Player player = limboPlayer.getProxyPlayer();
 
         targetServer.ping(pingOptions).whenComplete((ping, exception) -> {
-            if (!active || limboPlayer == null) return;
-            
+            if (!active || limboPlayer == null)
+                return;
+
             QueueConfig.Server serverConfig = config.server;
             if (exception != null) {
                 handleOfflineServer(player);
@@ -68,7 +69,7 @@ public class QueueHandler extends AbstractHandler {
     private void handleOnlineServer(Player player, ServerPing ping, QueueConfig.Server serverConfig) {
         boolean isFull = isServerFull(player, ping);
         int position = plugin.getQueueManager().getPosition(player);
-        
+
         if (!isFull && position == 1) {
             showConnectState(player, serverConfig);
         } else if (isFull) {
@@ -79,7 +80,8 @@ public class QueueHandler extends AbstractHandler {
     }
 
     private boolean isServerFull(Player player, ServerPing ping) {
-        if (player.hasPermission("continuous.admin")) return false;
+        if (player.hasPermission("continuous.admin"))
+            return false;
         QueueConfig.MaxPlayer mp = config.queue.maxPlayer();
         if (ping.getPlayers().isPresent()) {
             ServerPing.Players players = ping.getPlayers().get();
@@ -100,9 +102,10 @@ public class QueueHandler extends AbstractHandler {
             player.sendMessage(message);
         }
         this.state = State.CONNECT;
-        
+
         limboPlayer.getScheduledExecutor().schedule(() -> {
-            if (!active || limboPlayer == null) return;
+            if (!active || limboPlayer == null)
+                return;
             player.clearTitle();
             disconnect(targetServer);
         }, serverConfig.delay(), TimeUnit.MILLISECONDS);

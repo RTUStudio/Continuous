@@ -1,10 +1,10 @@
 package kr.rtustudio.continuous.command;
 
-import kr.rtustudio.continuous.Continuous;
 import com.google.common.collect.ImmutableList;
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.permission.Tristate;
+import kr.rtustudio.continuous.Continuous;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;

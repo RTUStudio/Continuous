@@ -1,13 +1,13 @@
 package kr.rtustudio.continuous.handler;
 
+import com.velocitypowered.api.proxy.Player;
+import com.velocitypowered.api.proxy.server.RegisteredServer;
 import kr.rtustudio.continuous.Continuous;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import net.elytrium.limboapi.api.Limbo;
 import net.elytrium.limboapi.api.LimboSessionHandler;
 import net.elytrium.limboapi.api.player.LimboPlayer;
-import com.velocitypowered.api.proxy.Player;
-import com.velocitypowered.api.proxy.server.RegisteredServer;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 import java.util.concurrent.TimeUnit;
 
@@ -26,10 +26,10 @@ public abstract class AbstractHandler implements LimboSessionHandler {
     public void onSpawn(Limbo server, LimboPlayer player) {
         this.active = true;
         this.limboPlayer = player;
-        
+
         Player proxyPlayer = player.getProxyPlayer();
         plugin.verbose("Player '" + proxyPlayer.getUsername() + "' spawned in limbo.");
-        
+
         player.disableFalling();
         onJoin(server, player);
     }

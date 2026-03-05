@@ -1,9 +1,9 @@
 package kr.rtustudio.continuous.listener;
 
-import kr.rtustudio.continuous.Continuous;
-import kr.rtustudio.continuous.configuration.QueueConfig;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyPingEvent;
+import kr.rtustudio.continuous.Continuous;
+import kr.rtustudio.continuous.configuration.QueueConfig;
 
 public class ServerPing {
 

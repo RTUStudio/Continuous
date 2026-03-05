@@ -1,15 +1,14 @@
 package kr.rtustudio.continuous.listener;
 
-import kr.rtustudio.continuous.Continuous;
-import kr.rtustudio.continuous.configuration.QueueConfig;
-import kr.rtustudio.continuous.configuration.ReconnectConfig;
 import com.velocitypowered.api.event.Continuation;
 import com.velocitypowered.api.event.Subscribe;
-import com.velocitypowered.api.event.player.KickedFromServerEvent;
 import com.velocitypowered.api.event.player.ServerPreConnectEvent;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
 import com.velocitypowered.api.proxy.server.ServerPing;
+import kr.rtustudio.continuous.Continuous;
+import kr.rtustudio.continuous.configuration.QueueConfig;
+import kr.rtustudio.continuous.configuration.ReconnectConfig;
 import lombok.extern.slf4j.Slf4j;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.flattener.ComponentFlattener;
@@ -19,8 +18,7 @@ import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 public class PlayerLogin {
 
     public static final PlainTextComponentSerializer SERIALIZER = PlainTextComponentSerializer.builder().flattener(
-            ComponentFlattener.basic()
-    ).build();
+            ComponentFlattener.basic()).build();
 
     private final Continuous plugin;
 
@@ -36,17 +34,17 @@ public class PlayerLogin {
         }
         Player player = e.getPlayer();
         RegisteredServer server = e.getOriginalServer();
-        
+
         server.ping().whenCompleteAsync((pong, throwable) -> {
             if (pong != null) {
                 boolean hasAdmin = player.hasPermission("continuous.admin");
                 boolean hasBypass = player.hasPermission("continuous.bypass");
-                
+
                 if (hasAdmin) {
                     continuation.resume();
                     return;
                 }
-                
+
                 boolean isFull = false;
                 QueueConfig queueConfig = plugin.getQueueConfig();
                 QueueConfig.MaxPlayer mp = queueConfig.queue.maxPlayer();
@@ -56,19 +54,20 @@ public class PlayerLogin {
                     plugin.verbose("online: " + players.getOnline() + ", max: " + max);
                     isFull = players.getOnline() >= max;
                 }
-                
+
                 if (hasBypass && !isFull) {
                     continuation.resume();
                     return;
                 }
-                
+
                 boolean hasQueuedPlayers = !plugin.getQueueManager().isEmpty();
-                
+
                 if (isFull || hasQueuedPlayers) {
                     e.setResult(ServerPreConnectEvent.ServerResult.denied());
                     plugin.getQueue().send(player, server);
                     if (hasQueuedPlayers && !isFull) {
-                        plugin.verbose("Server has space but queue has " + plugin.getQueueManager().getTotalSize() + " players waiting. Sending " + player.getUsername() + " to queue.");
+                        plugin.verbose("Server has space but queue has " + plugin.getQueueManager().getTotalSize()
+                                + " players waiting. Sending " + player.getUsername() + " to queue.");
                     }
                 }
             } else {
@@ -80,29 +79,36 @@ public class PlayerLogin {
     }
 
     @Subscribe
-    private void onKickedFromServer(KickedFromServerEvent e) {
-        Player player = e.getPlayer();
-        RegisteredServer server = e.getServer();
-        
-        Component component = e.getServerKickReason().orElse(Component.empty());
-        String reason = SERIALIZER.serialize(component);
-        plugin.verbose("Kick reason: " + reason);
-        
-        QueueConfig queueConfig = plugin.getQueueConfig();
-        ReconnectConfig reconnectConfig = plugin.getReconnectConfig();
-        
-        if (player.getCurrentServer().isEmpty()) {
-            if (reason.isEmpty() || reason.matches(queueConfig.trigger)) {
-                e.setResult(KickedFromServerEvent.Notify.create(Component.empty()));
-                plugin.getQueue().send(player, server);
-                plugin.verbose("Player " + player.getUsername() + " kicked, sending to queue");
+    public void onLoginLimboRegister(net.elytrium.limboapi.api.event.LoginLimboRegisterEvent event) {
+        event.setOnKickCallback(kickEvent -> {
+            if (kickEvent.kickedDuringServerConnect()) {
+                return false;
             }
-        } else {
-            if (reason.matches(reconnectConfig.trigger)) {
-                e.setResult(KickedFromServerEvent.Notify.create(Component.empty()));
-                plugin.getReconnect().send(player, server);
-                plugin.verbose("Player " + player.getUsername() + " kicked, sending to reconnect");
+
+            Player player = kickEvent.getPlayer();
+            RegisteredServer server = kickEvent.getServer();
+
+            Component component = kickEvent.getServerKickReason().orElse(Component.empty());
+            String reason = SERIALIZER.serialize(component);
+            plugin.verbose("Kick reason: " + reason);
+
+            QueueConfig queueConfig = plugin.getQueueConfig();
+            ReconnectConfig reconnectConfig = plugin.getReconnectConfig();
+
+            if (player.getCurrentServer().isEmpty()) {
+                if (reason.isEmpty() || reason.matches(queueConfig.trigger)) {
+                    plugin.verbose("Player " + player.getUsername() + " kicked, sending to queue");
+                    plugin.getQueue().send(player, server);
+                    return true;
+                }
+            } else {
+                if (reason.matches(reconnectConfig.trigger)) {
+                    plugin.verbose("Player " + player.getUsername() + " kicked, sending to reconnect");
+                    plugin.getReconnect().send(player, server);
+                    return true;
+                }
             }
-        }
+            return false;
+        });
     }
 }

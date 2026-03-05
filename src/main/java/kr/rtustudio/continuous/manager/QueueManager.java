@@ -1,8 +1,8 @@
 package kr.rtustudio.continuous.manager;
 
-import kr.rtustudio.continuous.Continuous;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
+import kr.rtustudio.continuous.Continuous;
 import lombok.Getter;
 
 import java.util.Deque;
@@ -31,7 +31,7 @@ public class QueueManager {
     public void addToReconnect(Player player, RegisteredServer targetServer, boolean isPriority) {
         UUID uuid = player.getUniqueId();
         removeFromQueue(uuid);
-        
+
         QueueEntry entry = new QueueEntry(player, targetServer, isPriority, QueueType.RECONNECT, System.currentTimeMillis());
         playerEntries.put(uuid, entry);
         addToQueueWithPriority(reconnectQueue, entry, isPriority);
@@ -42,7 +42,7 @@ public class QueueManager {
     public void addFromReconnectToQueue(Player player, RegisteredServer targetServer, boolean isPriority) {
         UUID uuid = player.getUniqueId();
         removeFromQueue(uuid);
-        
+
         QueueEntry entry = new QueueEntry(player, targetServer, isPriority, QueueType.EXISTING, System.currentTimeMillis());
         playerEntries.put(uuid, entry);
         addToQueueWithPriority(existingQueue, entry, isPriority);
@@ -53,7 +53,7 @@ public class QueueManager {
     public void addToNewQueue(Player player, RegisteredServer targetServer, boolean isPriority) {
         UUID uuid = player.getUniqueId();
         removeFromQueue(uuid);
-        
+
         QueueEntry entry = new QueueEntry(player, targetServer, isPriority, QueueType.NEW, System.currentTimeMillis());
         playerEntries.put(uuid, entry);
         addToQueueWithPriority(newQueue, entry, isPriority);
@@ -64,10 +64,10 @@ public class QueueManager {
     public void moveQueueToReconnect(Player player, RegisteredServer targetServer) {
         UUID uuid = player.getUniqueId();
         QueueEntry existing = playerEntries.get(uuid);
-        boolean isPriority = existing != null && existing.isPriority();
-        
+        boolean isPriority = existing != null && existing.priority();
+
         removeFromQueue(uuid);
-        
+
         QueueEntry entry = new QueueEntry(player, targetServer, isPriority, QueueType.RECONNECT, System.currentTimeMillis());
         playerEntries.put(uuid, entry);
         addToQueueWithPriority(reconnectQueue, entry, isPriority);
@@ -80,7 +80,7 @@ public class QueueManager {
             QueueEntry[] entries = queue.toArray(new QueueEntry[0]);
             int insertIndex = 0;
             for (int i = 0; i < entries.length; i++) {
-                if (entries[i].isPriority()) {
+                if (entries[i].priority()) {
                     insertIndex = i + 1;
                 } else {
                     break;
@@ -132,19 +132,19 @@ public class QueueManager {
         int position = 0;
         for (QueueEntry e : reconnectQueue) {
             position++;
-            if (e.getPlayer().getUniqueId().equals(uuid)) {
+            if (e.player().getUniqueId().equals(uuid)) {
                 return position;
             }
         }
         for (QueueEntry e : existingQueue) {
             position++;
-            if (e.getPlayer().getUniqueId().equals(uuid)) {
+            if (e.player().getUniqueId().equals(uuid)) {
                 return position;
             }
         }
         for (QueueEntry e : newQueue) {
             position++;
-            if (e.getPlayer().getUniqueId().equals(uuid)) {
+            if (e.player().getUniqueId().equals(uuid)) {
                 return position;
             }
         }
@@ -154,17 +154,17 @@ public class QueueManager {
     public QueueEntry pollNext() {
         QueueEntry entry = reconnectQueue.pollFirst();
         if (entry != null) {
-            playerEntries.remove(entry.getPlayer().getUniqueId());
+            playerEntries.remove(entry.player().getUniqueId());
             return entry;
         }
         entry = existingQueue.pollFirst();
         if (entry != null) {
-            playerEntries.remove(entry.getPlayer().getUniqueId());
+            playerEntries.remove(entry.player().getUniqueId());
             return entry;
         }
         entry = newQueue.pollFirst();
         if (entry != null) {
-            playerEntries.remove(entry.getPlayer().getUniqueId());
+            playerEntries.remove(entry.player().getUniqueId());
         }
         return entry;
     }
@@ -183,20 +183,7 @@ public class QueueManager {
         NEW
     }
 
-    @Getter
-    public static class QueueEntry {
-        private final Player player;
-        private final RegisteredServer targetServer;
-        private final boolean priority;
-        private final QueueType queueType;
-        private final long joinTime;
-
-        public QueueEntry(Player player, RegisteredServer targetServer, boolean priority, QueueType queueType, long joinTime) {
-            this.player = player;
-            this.targetServer = targetServer;
-            this.priority = priority;
-            this.queueType = queueType;
-            this.joinTime = joinTime;
-        }
+    public record QueueEntry(Player player, RegisteredServer targetServer, boolean priority, QueueType queueType,
+                             long joinTime) {
     }
 }

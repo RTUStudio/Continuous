@@ -1,8 +1,8 @@
 package kr.rtustudio.continuous.manager;
 
+import com.velocitypowered.api.proxy.Player;
 import kr.rtustudio.continuous.Continuous;
 import kr.rtustudio.continuous.handler.AbstractHandler;
-import com.velocitypowered.api.proxy.Player;
 
 import java.util.Map;
 import java.util.UUID;

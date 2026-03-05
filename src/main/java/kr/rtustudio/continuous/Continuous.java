@@ -1,6 +1,13 @@
 package kr.rtustudio.continuous;
 
+import com.google.inject.Inject;
+import com.velocitypowered.api.command.CommandMeta;
+import com.velocitypowered.api.event.Subscribe;
+import com.velocitypowered.api.event.connection.DisconnectEvent;
+import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.plugin.PluginContainer;
+import com.velocitypowered.api.plugin.annotation.DataDirectory;
+import com.velocitypowered.api.proxy.ProxyServer;
 import kr.rtustudio.configurate.Configuration;
 import kr.rtustudio.continuous.command.ReloadCommand;
 import kr.rtustudio.continuous.configuration.QueueConfig;
@@ -12,16 +19,9 @@ import kr.rtustudio.continuous.manager.HandlerManager;
 import kr.rtustudio.continuous.manager.QueueManager;
 import kr.rtustudio.continuous.server.QueueServer;
 import kr.rtustudio.continuous.server.ReconnectServer;
-import net.elytrium.limboapi.api.LimboFactory;
-import com.google.inject.Inject;
-import com.velocitypowered.api.command.CommandMeta;
-import com.velocitypowered.api.event.Subscribe;
-import com.velocitypowered.api.event.connection.DisconnectEvent;
-import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
-import com.velocitypowered.api.plugin.annotation.DataDirectory;
-import com.velocitypowered.api.proxy.ProxyServer;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import net.elytrium.limboapi.api.LimboFactory;
 import org.slf4j.Logger;
 
 import java.nio.file.Path;
@@ -89,7 +89,7 @@ public class Continuous {
                 .getPlugin("limboapi")
                 .flatMap(PluginContainer::getInstance)
                 .orElseThrow(() -> new RuntimeException("LimboAPI not found!"));
-        
+
         reconnect = new ReconnectServer(this, limboFactory);
         queue = new QueueServer(this, limboFactory);
 
@@ -97,7 +97,7 @@ public class Continuous {
         server.getEventManager().register(this, new ServerPing(this));
 
         server.getCommandManager().register(commandMeta, new ReloadCommand(this));
-        
+
         log.info("Continuous plugin enabled!");
     }
 

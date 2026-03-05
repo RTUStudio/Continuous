@@ -1,16 +1,15 @@
 package kr.rtustudio.configurate;
 
 import io.leangen.geantyref.GenericTypeReflector;
+import org.jetbrains.annotations.Nullable;
+import org.spongepowered.configurate.objectmapping.FieldDiscoverer;
+import org.spongepowered.configurate.serialize.SerializationException;
 
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Field;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.SequencedMap;
-
-import org.jetbrains.annotations.Nullable;
-import org.spongepowered.configurate.objectmapping.FieldDiscoverer;
-import org.spongepowered.configurate.serialize.SerializationException;
 
 import static java.util.Objects.requireNonNullElseGet;
 

@@ -1,6 +1,8 @@
 package kr.rtustudio.configurate;
 
 import io.leangen.geantyref.GenericTypeReflector;
+import org.spongepowered.configurate.objectmapping.FieldDiscoverer;
+import org.spongepowered.configurate.serialize.SerializationException;
 
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Field;
@@ -8,9 +10,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
-
-import org.spongepowered.configurate.objectmapping.FieldDiscoverer;
-import org.spongepowered.configurate.serialize.SerializationException;
 
 /**
  * Instance factory for ConfigurationPart inner classes.
@@ -66,5 +65,6 @@ final class InnerClassInstanceFactory
         return true;
     }
 
-    record ImplicitProvider(Supplier<Object> provider) {}
+    record ImplicitProvider(Supplier<Object> provider) {
+    }
 }

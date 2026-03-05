@@ -1,16 +1,16 @@
 package kr.rtustudio.continuous.handler;
 
+import com.velocitypowered.api.proxy.Player;
+import com.velocitypowered.api.proxy.server.PingOptions;
+import com.velocitypowered.api.proxy.server.RegisteredServer;
+import com.velocitypowered.api.proxy.server.ServerPing;
 import kr.rtustudio.continuous.Continuous;
 import kr.rtustudio.continuous.configuration.QueueConfig;
 import kr.rtustudio.continuous.configuration.ReconnectConfig;
 import net.elytrium.limboapi.api.Limbo;
 import net.elytrium.limboapi.api.player.LimboPlayer;
-import net.kyori.adventure.text.minimessage.MiniMessage;
-import com.velocitypowered.api.proxy.Player;
-import com.velocitypowered.api.proxy.server.PingOptions;
-import com.velocitypowered.api.proxy.server.RegisteredServer;
-import com.velocitypowered.api.proxy.server.ServerPing;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.title.Title;
 
 import java.time.Duration;
@@ -37,20 +37,21 @@ public class ReconnectHandler extends AbstractHandler {
         Player proxyPlayer = player.getProxyPlayer();
         boolean isPriority = proxyPlayer.hasPermission("continuous.priority");
         plugin.getQueueManager().addToReconnect(proxyPlayer, targetServer, isPriority);
-        
-        player.setGameMode(config.world.gamemode());
+
         scheduleNextTick(config.server.check());
     }
 
     @Override
     protected void tick() {
-        if (!active || limboPlayer == null) return;
-        
+        if (!active || limboPlayer == null)
+            return;
+
         Player player = limboPlayer.getProxyPlayer();
-        
+
         targetServer.ping(pingOptions).whenComplete((ping, exception) -> {
-            if (!active || limboPlayer == null) return;
-            
+            if (!active || limboPlayer == null)
+                return;
+
             ReconnectConfig.Server serverConfig = config.server;
             if (exception != null) {
                 showOfflineState(player, serverConfig);
@@ -77,7 +78,7 @@ public class ReconnectHandler extends AbstractHandler {
     private void handleOnlineServer(Player player, ServerPing ping, ReconnectConfig.Server serverConfig) {
         boolean isFull = isServerFull(player, ping);
         int position = plugin.getQueueManager().getPosition(player);
-        
+
         if (isFull) {
             moveToQueue(player);
         } else if (position == 1) {
@@ -95,7 +96,8 @@ public class ReconnectHandler extends AbstractHandler {
     }
 
     private boolean isServerFull(Player player, ServerPing ping) {
-        if (player.hasPermission("continuous.admin")) return false;
+        if (player.hasPermission("continuous.admin"))
+            return false;
         QueueConfig.MaxPlayer mp = queueConfig.queue.maxPlayer();
         if (ping.getPlayers().isPresent()) {
             ServerPing.Players players = ping.getPlayers().get();
@@ -116,9 +118,10 @@ public class ReconnectHandler extends AbstractHandler {
             player.sendMessage(message);
         }
         this.state = State.CONNECT;
-        
+
         limboPlayer.getScheduledExecutor().schedule(() -> {
-            if (!active || limboPlayer == null) return;
+            if (!active || limboPlayer == null)
+                return;
             player.clearTitle();
             disconnect(targetServer);
         }, serverConfig.delay(), TimeUnit.MILLISECONDS);

@@ -1,6 +1,10 @@
 package kr.rtustudio.configurate;
 
 import io.leangen.geantyref.GenericTypeReflector;
+import org.jetbrains.annotations.Nullable;
+import org.spongepowered.configurate.serialize.SerializationException;
+import org.spongepowered.configurate.util.CheckedFunction;
+import org.spongepowered.configurate.util.CheckedSupplier;
 
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Constructor;
@@ -8,11 +12,6 @@ import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
-
-import org.jetbrains.annotations.Nullable;
-import org.spongepowered.configurate.serialize.SerializationException;
-import org.spongepowered.configurate.util.CheckedFunction;
-import org.spongepowered.configurate.util.CheckedSupplier;
 
 /**
  * Instance supplier that handles creating non-static inner classes
