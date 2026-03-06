@@ -45,6 +45,11 @@ public class PlayerLogin {
                     return;
                 }
 
+                if (plugin.getQueueManager().getPassingPlayers().remove(player.getUniqueId())) {
+                    continuation.resume();
+                    return;
+                }
+
                 boolean isFull = false;
                 QueueConfig queueConfig = plugin.getQueueConfig();
                 QueueConfig.MaxPlayer mp = queueConfig.queue.maxPlayer();
@@ -60,13 +65,14 @@ public class PlayerLogin {
                     return;
                 }
 
-                boolean hasQueuedPlayers = !plugin.getQueueManager().isEmpty();
+                boolean hasQueuedPlayers = plugin.getQueueManager().hasQueuedPlayersForServer(server);
 
                 if (isFull || hasQueuedPlayers) {
                     e.setResult(ServerPreConnectEvent.ServerResult.denied());
                     plugin.getQueue().send(player, server);
                     if (hasQueuedPlayers && !isFull) {
-                        plugin.verbose("Server has space but queue has " + plugin.getQueueManager().getTotalSize()
+                        plugin.verbose("Server has space but queue has "
+                                + plugin.getQueueManager().getQueuedPlayersCountForServer(server)
                                 + " players waiting. Sending " + player.getUsername() + " to queue.");
                     }
                 }

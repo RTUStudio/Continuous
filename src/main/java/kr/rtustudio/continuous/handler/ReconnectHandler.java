@@ -9,7 +9,6 @@ import kr.rtustudio.continuous.configuration.QueueConfig;
 import kr.rtustudio.continuous.configuration.ReconnectConfig;
 import net.elytrium.limboapi.api.Limbo;
 import net.elytrium.limboapi.api.player.LimboPlayer;
-import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.title.Title;
 
@@ -18,26 +17,28 @@ import java.util.concurrent.TimeUnit;
 
 public class ReconnectHandler extends AbstractHandler {
 
+    private static final MiniMessage MM = MiniMessage.miniMessage();
+
     private final ReconnectConfig config;
     private final QueueConfig queueConfig;
     private final PingOptions pingOptions;
-    private final MiniMessage serializer = MiniMessage.miniMessage();
 
     private State state = null;
 
     public ReconnectHandler(Continuous plugin, Player player, RegisteredServer server) {
-        super(plugin, server, true);
+        super(plugin, server);
         this.config = plugin.getReconnectConfig();
         this.queueConfig = plugin.getQueueConfig();
-        this.pingOptions = PingOptions.builder().timeout(Duration.ofMillis(config.server.timeout())).build();
+        this.pingOptions = PingOptions.builder()
+                .timeout(Duration.ofMillis(config.server.timeout()))
+                .build();
     }
 
     @Override
-    public void onJoin(Limbo server, LimboPlayer player) {
+    protected void onJoin(Limbo server, LimboPlayer player) {
         Player proxyPlayer = player.getProxyPlayer();
         boolean isPriority = proxyPlayer.hasPermission("continuous.priority");
         plugin.getQueueManager().addToReconnect(proxyPlayer, targetServer, isPriority);
-
         scheduleNextTick(config.server.check());
     }
 
@@ -48,43 +49,41 @@ public class ReconnectHandler extends AbstractHandler {
 
         Player player = limboPlayer.getProxyPlayer();
 
-        targetServer.ping(pingOptions).whenComplete((ping, exception) -> {
+        targetServer.ping(pingOptions).whenComplete((ping, ex) -> {
             if (!active || limboPlayer == null)
                 return;
 
-            ReconnectConfig.Server serverConfig = config.server;
-            if (exception != null) {
-                showOfflineState(player, serverConfig);
+            if (ex != null) {
+                showOfflineState(player);
             } else {
-                handleOnlineServer(player, ping, serverConfig);
+                handleOnlineServer(player, ping);
             }
         });
     }
 
-    private void showOfflineState(Player player, ReconnectConfig.Server serverConfig) {
+    private void showOfflineState(Player player) {
         Title title = Title.title(
-                serializer.deserialize(config.offline.title().title()),
-                serializer.deserialize(config.offline.title().subtitle()),
-                Title.Times.times(Duration.ZERO, Duration.ofMillis(30000), Duration.ZERO));
+                MM.deserialize(config.offline.title().title()),
+                MM.deserialize(config.offline.title().subtitle()),
+                Title.Times.times(Duration.ZERO, Duration.ofMillis(30_000), Duration.ZERO));
         player.showTitle(title);
+
         if (this.state != State.OFFLINE) {
-            Component message = serializer.deserialize(config.offline.message());
-            player.sendMessage(message);
+            player.sendMessage(MM.deserialize(config.offline.message()));
         }
         this.state = State.OFFLINE;
-        scheduleNextTick(serverConfig.check());
+        scheduleNextTick(config.server.check());
     }
 
-    private void handleOnlineServer(Player player, ServerPing ping, ReconnectConfig.Server serverConfig) {
+    private void handleOnlineServer(Player player, ServerPing ping) {
         boolean isFull = isServerFull(player, ping);
-        int position = plugin.getQueueManager().getPosition(player);
 
         if (isFull) {
+            // 서버가 꽉 찼을 때만 큐로 이동
             moveToQueue(player);
-        } else if (position == 1) {
-            showConnectState(player, serverConfig);
         } else {
-            scheduleNextTick(serverConfig.check());
+            // 자리가 있으면 곧바로 연결 시도
+            showConnectState(player);
         }
     }
 
@@ -107,15 +106,15 @@ public class ReconnectHandler extends AbstractHandler {
         return false;
     }
 
-    private void showConnectState(Player player, ReconnectConfig.Server serverConfig) {
+    private void showConnectState(Player player) {
         Title title = Title.title(
-                serializer.deserialize(config.connect.title().title()),
-                serializer.deserialize(config.connect.title().subtitle()),
-                Title.Times.times(Duration.ZERO, Duration.ofMillis(30000), Duration.ZERO));
+                MM.deserialize(config.connect.title().title()),
+                MM.deserialize(config.connect.title().subtitle()),
+                Title.Times.times(Duration.ZERO, Duration.ofMillis(30_000), Duration.ZERO));
         player.showTitle(title);
+
         if (this.state != State.CONNECT) {
-            Component message = serializer.deserialize(config.connect.message());
-            player.sendMessage(message);
+            player.sendMessage(MM.deserialize(config.connect.message()));
         }
         this.state = State.CONNECT;
 
@@ -124,10 +123,10 @@ public class ReconnectHandler extends AbstractHandler {
                 return;
             player.clearTitle();
             disconnect(targetServer);
-        }, serverConfig.delay(), TimeUnit.MILLISECONDS);
+        }, config.server.delay(), TimeUnit.MILLISECONDS);
     }
 
-    enum State {
+    private enum State {
         OFFLINE, CONNECT
     }
 }
